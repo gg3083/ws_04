@@ -1,0 +1,21 @@
+{
+  "name": "whatsapp-lib",
+  "version": "0.0.0",
+  "private": true,
+  "node": "18.20.1",
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "bin": "./bin/www",
+  "pkg": {},
+  "dependencies": {
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "express": "~4.16.1",
+    "http-errors": "~1.6.3",
+    "jade": "~1.11.0",
+    "morgan": "~1.9.1",
+    "puppeteer": "^24.6.1",
+    "whatsapp-web.js": "^1.27.0"
+  }
+}
