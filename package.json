@@ -4,11 +4,15 @@
   "private": true,
   "node": "18.20.1",
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "build": "rm -rf build && pkg . -t win --out-path build --public",
+    "osxbuild": "rm -rf build && pkg . -t macos --out-path build --public",
+    "postbuild": "cp -R ./node_modules/puppeteer/.local-chromium build/chromium"
   },
   "bin": "./bin/www",
   "pkg": {},
   "dependencies": {
+    "connect-multiparty": "^2.2.0",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",
@@ -16,6 +20,7 @@
     "jade": "~1.11.0",
     "morgan": "~1.9.1",
     "puppeteer": "^24.6.1",
+    "request-promise": "^4.2.6",
     "whatsapp-web.js": "^1.27.0"
   }
 }
