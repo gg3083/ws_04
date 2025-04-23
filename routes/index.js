@@ -367,7 +367,7 @@ router.get('/getAllChatPhone', async function (req, res, next) {
         return await Promise.all(chatPromises);
     });
 
-    let result = chat.map(item => {
+    let result = chats.map(item => {
         // console.log('item=>', item)
         return {
             name: item.formattedTitle,
