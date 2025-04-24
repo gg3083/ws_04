@@ -18,6 +18,9 @@ let filePath = `${user_home}${path.sep}Documents${path.sep}maibangLib${path.sep}
 const isPkg = typeof process.pkg !== 'undefined';
 let locaPath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
 let chromiumExecutablePath = locaPath;
+if (process.platform === 'darwin'){
+    chromiumExecutablePath = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+}
 const args = process.argv.slice(2); // 去掉前两个元素
 
 args.forEach(arg => {
@@ -29,6 +32,7 @@ args.forEach(arg => {
 });
 
 console.log('chromiumExecutablePath', chromiumExecutablePath)
+console.log('process.platform', process.platform)
 let client = new Client({
     // puppeteer: {headless: false,      executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe'},
     authStrategy: new LocalAuth(),
@@ -48,7 +52,9 @@ if (process.platform === 'darwin') {
             clientId: null,
             dataPath: filePath,
         }),
-        puppeteer: {headless: false,},
+        puppeteer: {
+            headless: false,
+            executablePath: chromiumExecutablePath},
 
         // session: sessionCfg
     });
