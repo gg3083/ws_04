@@ -3,7 +3,7 @@ var router = express.Router();
 var mutipart = require('connect-multiparty');
 
 var mutipartMiddeware = mutipart();
-const {Client, LocalAuth, MessageMedia, PrivateChat, GroupChat} = require('whatsapp-web.js');
+const {Client, LocalAuth, MessageMedia, PrivateChat, GroupChat, LocalWebCacheOptions} = require('whatsapp-web.js');
 const ChatFactory = require("../utils/ChatFactory")
 const path = require("path");
 const puppeteer = require("puppeteer");
@@ -13,6 +13,7 @@ var request = require('request');
 var requestPromise = require('request-promise');
 const user_home = process.env.HOME || process.env.USERPROFILE
 let filePath = `${user_home}${path.sep}Documents${path.sep}maibangLib${path.sep}.wwebjs_auth/`
+let fileCachePath = `${user_home}${path.sep}Documents${path.sep}maibangLib${path.sep}.wwebjs_cache/`
 
 
 const isPkg = typeof process.pkg !== 'undefined';
@@ -49,6 +50,9 @@ if (process.platform === 'darwin') {
             dataPath: filePath,
         }),
         puppeteer: {headless: false,},
+        webVersionCache: new LocalWebCacheOptions({
+            path: fileCachePath
+        })
 
         // session: sessionCfg
     });
