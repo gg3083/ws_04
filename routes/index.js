@@ -3,7 +3,7 @@ var router = express.Router();
 var mutipart = require('connect-multiparty');
 
 var mutipartMiddeware = mutipart();
-const {Client, LocalAuth, MessageMedia, PrivateChat, GroupChat} = require('whatsapp-web.js');
+const {Client, LocalAuth, MessageMedia, PrivateChat, GroupChat, LocalWebCacheOptions} = require('whatsapp-web.js');
 const ChatFactory = require("../utils/ChatFactory")
 const path = require("path");
 const puppeteer = require("puppeteer");
@@ -13,6 +13,8 @@ var request = require('request');
 var requestPromise = require('request-promise');
 const user_home = process.env.HOME || process.env.USERPROFILE
 let filePath = `${user_home}${path.sep}Documents${path.sep}maibangLib${path.sep}.wwebjs_auth/`
+let fileCachePath = `${user_home}${path.sep}Documents${path.sep}maibangLib${path.sep}.wwebjs_cache/`
+let userDataPath = `${user_home}${path.sep}Documents${path.sep}maibangLib${path.sep}.chrome_data/`
 
 
 const isPkg = typeof process.pkg !== 'undefined';
@@ -52,11 +54,17 @@ if (process.platform === 'darwin') {
             clientId: null,
             dataPath: filePath,
         }),
+        webVersionCache: {
+            type: 'local',
+            path: fileCachePath
+        },
         puppeteer: {
             headless: false,
-            executablePath: chromiumExecutablePath},
-
-        // session: sessionCfg
+            executablePath: chromiumExecutablePath,
+            args: [
+                `--user-data-dir=${userDataPath}` // 使用临时目录存储用户数据
+            ],
+        },
     });
 }
 
@@ -373,7 +381,7 @@ router.get('/getAllChatPhone', async function (req, res, next) {
         return await Promise.all(chatPromises);
     });
 
-    let result = chat.map(item => {
+    let result = chats.map(item => {
         // console.log('item=>', item)
         return {
             name: item.formattedTitle,
@@ -456,7 +464,7 @@ router.get('/setRead/:id', function (req, res, next) {
     })
 
 });
-
+//http://127.0.0.1:17790/getChatMsgById/0@c.us?limit=100
 router.get('/getChatMsgById/:id', function (req, res, next) {
     let phones = `${req.params.id}`;
     let limit = `${req.query.limit}`;
