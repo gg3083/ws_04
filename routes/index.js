@@ -473,12 +473,14 @@ router.get('/getChatMsgById/:id', function (req, res, next) {
         num = Number(limit)
     }
     console.log('phone, num', phones, num)
-    client.getChatById(phones).then(item => {
+    client.getChatById(phones).then(async item => {
         console.log('item.unreadCount', item.unreadCount)
         if (item.unreadCount > 0) {
-            client.markChatRead(phones).then(item => {
-                console.log("res", item)
-            })
+             await client.pupPage.evaluate(async chatId => {
+                let chat = await window.Store.Chat.get(chatId);
+                await window.Store.Cmd.markChatUnread(chat, false);
+            }, phones);
+
         }
         let data = []
         item.fetchMessages({limit: num}).then(msgs => {
