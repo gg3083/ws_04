@@ -24,8 +24,7 @@ if (process.platform === 'darwin'){
     chromiumExecutablePath = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 }
 const args = process.argv.slice(2); // 去掉前两个元素
-
-args.forEach(arg => {
+            args.forEach(arg => {
     let [key, value] = arg.split('=');
     console.log(`${key}:${value}`);
     if (key === 'chromePath') {
@@ -62,6 +61,7 @@ if (process.platform === 'darwin') {
             headless: false,
             executablePath: chromiumExecutablePath,
             args: [
+                '--no-process-singleton',
                 `--user-data-dir=${userDataPath}` // 使用临时目录存储用户数据
             ],
         },
@@ -71,24 +71,32 @@ if (process.platform === 'darwin') {
 const isCrm = false
 const isB2b = false
 
-
 /* GET home page. */
 router.get('/', function (req, res, next) {
-    let qrCode = "init..."
+    // 移除所有事件监听器，避免重复绑定
+    client.removeAllListeners('qr');
+    client.removeAllListeners('authenticated');
+    client.removeAllListeners('auth_failure');
+    client.removeAllListeners('ready');
+    client.removeAllListeners('message');
+    client.removeAllListeners('message_ack');
+
+        initializeClient(res);
+});
+
+/**
+ * 初始化 WhatsApp Client 的逻辑封装为一个函数，避免重复代码
+ */
+async function initializeClient(res) {
+    let qrCode = "init...";
     client.on('qr', (qr) => {
         // Generate and scan this code with your phone
         console.log('QR RECEIVED', qr);
-        qrCode = qr
+        qrCode = qr;
     });
 
     client.on('authenticated', async (session) => {
         console.log('AUTHENTICATED', session);
-        // sessionCfg = session;
-        // fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
-        //     if (err) {
-        //         console.error(err);
-        //     }
-        // });
         const debugWWebVersion = await client.getWWebVersion();
         console.log(`WWebVersion = ${debugWWebVersion}`);
 
@@ -101,25 +109,24 @@ router.get('/', function (req, res, next) {
     });
 
     client.on('auth_failure', msg => {
-        // Fired if session restore was unsuccessfull
+        // Fired if session restore was unsuccessful
         console.error('AUTHENTICATION FAILURE', msg);
     });
 
     client.on('ready', (session) => {
-
         console.log('Client is ready!', JSON.stringify(session));
         res.send({state: '200'});
     });
 
     client.on('message', async msg => {
-        console.log('接到消息：', msg)
+        console.log('接到消息：', msg);
         if (msg.ack == null || msg.ack === 3) {
-            return
+            return;
         }
-        let body = msg.body
+        let body = msg.body;
 
         if (msg.hasMedia) {
-            body = "[图像文件]:暂不支持查看！"
+            body = "[图像文件]:暂不支持查看！";
         }
         let data = {
             body: body,
@@ -128,15 +135,15 @@ router.get('/', function (req, res, next) {
             to: msg.to,
             hasMedia: msg.hasMedia,
             ack: msg.ack,
-        }
-        let jsonData = JSON.stringify(data)
-        console.log('开始回复1：', jsonData)
-        let callbackUrl = "http://127.0.0.1:17771/whatsapp/callback"
+        };
+        let jsonData = JSON.stringify(data);
+        console.log('开始回复1：', jsonData);
+        let callbackUrl = "http://127.0.0.1:17771/whatsapp/callback";
         if (isCrm) {
-            callbackUrl = "http://127.0.0.1:17770/whatsapp/callback"
+            callbackUrl = "http://127.0.0.1:17770/whatsapp/callback";
         }
         if (isB2b) {
-            callbackUrl = "http://127.0.0.1:17772/whatsapp/callback"
+            callbackUrl = "http://127.0.0.1:17772/whatsapp/callback";
         }
         request({
             url: callbackUrl,
@@ -148,22 +155,23 @@ router.get('/', function (req, res, next) {
             body: data
         }, function (error, response, body) {
             if (!error && response.statusCode === 200) {
+                // 请求成功，但这里没有处理逻辑
             }
         });
-
     });
+
     client.on('message_ack', async msg => {
-        console.log('message_ack：', msg)
+        console.log('message_ack：', msg);
         if (msg.ack !== 3) {
-            return
+            return;
         }
         if (msg.from && msg.from.includes("@g.us")) {
-            console.log('群组消息不需要通知已读！')
-            return
+            console.log('群组消息不需要通知已读！');
+            return;
         }
-        let body = msg.body
+        let body = msg.body;
         if (msg.hasMedia) {
-            body = "[图像文件]:暂不支持查看！"
+            body = "[图像文件]:暂不支持查看！";
         }
         let data = {
             body: body,
@@ -172,15 +180,15 @@ router.get('/', function (req, res, next) {
             to: msg.to,
             hasMedia: msg.hasMedia,
             ack: msg.ack,
-        }
-        let jsonData = JSON.stringify(data)
-        console.log('已读消息：', jsonData)
-        let callbackUrl = "http://127.0.0.1:17771/whatsapp/callback"
+        };
+        let jsonData = JSON.stringify(data);
+        console.log('已读消息：', jsonData);
+        let callbackUrl = "http://127.0.0.1:17771/whatsapp/callback";
         if (isCrm) {
-            callbackUrl = "http://127.0.0.1:17770/whatsapp/callback"
+            callbackUrl = "http://127.0.0.1:17770/whatsapp/callback";
         }
         if (isB2b) {
-            callbackUrl = "http://127.0.0.1:17772/whatsapp/callback"
+            callbackUrl = "http://127.0.0.1:17772/whatsapp/callback";
         }
         request({
             url: callbackUrl,
@@ -192,14 +200,69 @@ router.get('/', function (req, res, next) {
             body: data
         }, function (error, response, body) {
             if (!error && response.statusCode === 200) {
+                // 请求成功，但这里没有处理逻辑
             }
         });
     });
 
-    client.initialize();
-    console.log('initialize')
-});
+    // 初始化 client
+    await client.initialize();
+    // 监听 disconnected 事件
+    client.pupBrowser.on('disconnected', () => {
+        console.log('Browser has been disconnected!');
 
+        // 调用异步函数
+        deleteLockFile().catch(err => {
+            console.error('Unhandled error in deleteLockFile:', err);
+        });
+    });
+    console.log('initialize');
+}
+
+
+const lockFilePath = path.join(userDataPath, 'SingletonLock');
+
+async function deleteLockFile() {
+    try {
+        // 尝试删除文件
+        await fs.unlink(lockFilePath);
+        console.log('SingletonLock file deleted successfully.');
+    } catch (err) {
+        console.error('Error while deleting SingletonLock file:', err);
+
+        if (err.code === 'ENOENT') {
+            // 文件不存在，无需额外处理
+            console.log('SingletonLock file does not exist. It may be safe to proceed.');
+        } else {
+            // 其他错误（如权限问题）
+            try {
+                // 检查文件状态
+                const stats = await fs.lstat(lockFilePath);
+                if (stats.isSymbolicLink()) {
+                    console.log('SingletonLock is a symbolic link. Deleting it...');
+                    await fs.unlink(lockFilePath); // 删除符号链接
+                } else {
+                    console.log('SingletonLock is a regular file. It may be safe to proceed.');
+                }
+            } catch (statErr) {
+                // 如果 lstat 也失败，说明文件可能已经被删除或其他问题
+                console.log('File does not exist or cannot be accessed:', statErr.message);
+            }
+        }
+    }
+}
+
+
+router.get('/qq', function (req, res, next) {
+
+    const lockFilePath = path.join(userDataPath, 'SingletonLock');
+    console.log('lockFilePath', lockFilePath)
+    console.log('existsSync lockFilePath', fs.existsSync(lockFilePath))
+    console.log('userDataPath', fs.existsSync('/Users/mib/Documents/maibangLib/.chrome_data/SingletonLock'))
+    // console.log(client.pupBrowser.connected)
+    console.log(client.pupBrowser.isConnected())
+    res.send({status: lockFilePath, sendState: '200'});
+});
 
 router.get('/status', function (req, res, next) {
 

@@ -10,7 +10,11 @@
     "postbuild": "cp -R ./node_modules/puppeteer/.local-chromium build/chromium"
   },
   "bin": "./bin/www",
-  "pkg": {},
+  "pkg": {
+    "assets": [
+      "views/**/*"
+    ]
+  },
   "dependencies": {
     "connect-multiparty": "^2.2.0",
     "cookie-parser": "~1.4.4",
