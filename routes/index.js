@@ -747,7 +747,7 @@ async function getMeInfo(userId) {
                 });
             }
 
-            const userInfo = window.Store.User.getMeUser()
+            const userInfo = window.Store.User.getMaybeMePnUser()
             const chatWid = window.Store.WidFactory.createWid(userInfo._serialized);
             if (userId && userId > 0) {
                 const data = await window.Store.ProfilePic.requestProfilePicFromServer(chatWid)
